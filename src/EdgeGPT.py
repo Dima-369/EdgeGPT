@@ -1,6 +1,3 @@
-"""
-Main.py
-"""
 from __future__ import annotations
 
 import argparse
@@ -741,45 +738,19 @@ async def async_main(args: argparse.Namespace) -> None:
     """
     Main function
     """
-    print("Initializing...")
-    print("Enter `alt+enter` or `escape+enter` to send a message")
     # Read and parse cookies
     cookies = None
     if args.cookie_file:
         cookies = json.loads(open(args.cookie_file, encoding="utf-8").read())
     bot = await Chatbot.create(proxy=args.proxy, cookies=cookies)
     session = _create_session()
-    completer = _create_completer(["!help", "!exit", "!reset"])
+    completer = _create_completer([])
     initial_prompt = args.prompt
 
+    with open('/Library/Caches/EdgeGPT.txt', 'r') as file:
+        question = file.read()
+
     while True:
-        print("\nYou:")
-        if initial_prompt:
-            question = initial_prompt
-            print(question)
-            initial_prompt = None
-        else:
-            question = (
-                input()
-                if args.enter_once
-                else await _get_input_async(session=session, completer=completer)
-            )
-        print()
-        if question == "!exit":
-            break
-        if question == "!help":
-            print(
-                """
-            !help - Show this help message
-            !exit - Exit the program
-            !reset - Reset the conversation
-            """,
-            )
-            continue
-        if question == "!reset":
-            await bot.reset()
-            continue
-        print("Bot:")
         if args.no_stream:
             print(
                 (
@@ -790,6 +761,7 @@ async def async_main(args: argparse.Namespace) -> None:
                     )
                 )["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"],
             )
+            sys.exit(0)
         else:
             wrote = 0
             if args.rich:
@@ -824,17 +796,6 @@ async def async_main(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    print(
-        """
-        EdgeGPT - A demo of reverse engineering the Bing GPT chatbot
-        Repo: github.com/acheong08/EdgeGPT
-        By: Antonio Cheong
-
-        !help for help
-
-        Type !exit to exit
-    """,
-    )
     parser = argparse.ArgumentParser()
     parser.add_argument("--enter-once", action="store_true")
     parser.add_argument("--no-stream", action="store_true")
@@ -853,7 +814,7 @@ def main() -> None:
     parser.add_argument(
         "--style",
         choices=["creative", "balanced", "precise"],
-        default="balanced",
+        default="creative",
     )
     parser.add_argument(
         "--prompt",
